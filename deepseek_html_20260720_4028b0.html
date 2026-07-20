@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Чертёжник — справочник обозначений</title>
+<style>
+:root{
+  --bg:#f5f7fb;--surface:#fff;--surface2:#f8faff;--ink:#172033;--muted:#66728a;
+  --line:#e3e8f2;--primary:#4169e1;--primary2:#edf2ff;--nav:#111b32;
+  --green:#07966d;--orange:#e8892e;--shadow:0 12px 34px rgba(25,44,85,.08)
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,Arial,sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.app{min-height:100vh}
+.sidebar{
+  position:fixed;z-index:20;inset:0 auto 0 0;width:258px;padding:24px 16px;
+  overflow:auto;background:var(--nav);color:#dce5ff
+}
+.logo{display:flex;align-items:center;gap:12px;margin:0 10px 30px;font-size:21px;font-weight:800}
+.logo-mark{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#587cff,#15bdc5);font-size:25px}
+.side-label{margin:24px 12px 8px;color:#8190b1;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase}
+.nav{display:grid;gap:4px}
+.nav button{
+  display:flex;align-items:center;gap:11px;width:100%;padding:11px 12px;border:0;border-radius:10px;
+  background:transparent;color:#b9c5e2;text-align:left
+}
+.nav button:hover,.nav button.active{background:#26385f;color:#fff}
+.nav-icon{display:grid;place-items:center;width:25px;font-size:19px}
+.side-note{margin:28px 6px 0;padding:14px;border:1px solid #2b3c60;border-radius:13px;background:#182641;color:#9eaccb;font-size:12px}
+.side-note b{display:block;margin-bottom:5px;color:#fff}
+.main{margin-left:258px;padding:28px clamp(20px,5vw,72px) 60px}
+.topbar{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px}
+.mode{display:flex;align-items:center;gap:9px;color:var(--ink)}
+.avatar{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#dfe7ff;color:#3159cb;font-weight:800}
+.hero{display:flex;justify-content:space-between;gap:30px;margin:38px 0 28px}
+h1{margin:0 0 12px;font-size:clamp(30px,4vw,46px);line-height:1.08;letter-spacing:-1.5px}
+.hero p{max-width:760px;margin:0;color:var(--muted);font-size:16px;line-height:1.7}
+.hero-badge{align-self:flex-start;min-width:165px;padding:18px;border:1px solid #cdd8ff;border-radius:16px;background:linear-gradient(145deg,#fff,#eaf0ff);box-shadow:var(--shadow)}
+.hero-badge strong{display:block;color:var(--primary);font-size:28px}
+.hero-badge span{color:var(--muted);font-size:12px}
+.toolbar{position:sticky;z-index:10;top:0;display:flex;gap:12px;padding:13px 0;background:rgba(245,247,251,.94);backdrop-filter:blur(10px)}
+.search-wrap{position:relative;flex:1;max-width:500px}
+.search-wrap span{position:absolute;left:15px;top:12px;color:var(--muted);font-size:19px}
+.search{width:100%;height:47px;padding:0 15px 0 44px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);outline:none}
+.search:focus{border-color:#9db1ff;box-shadow:0 0 0 4px #4169e115}
+.filter{height:47px;padding:0 14px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);outline:none}
+.section{scroll-margin-top:78px;margin-top:31px}
+.section-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:14px}
+.section-head h2{margin:0;font-size:22px}
+.section-head p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.count{padding:5px 10px;border-radius:20px;background:var(--primary2);color:var(--primary);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.card{
+  display:flex;flex-direction:column;min-height:245px;padding:19px;border:1px solid var(--line);
+  border-radius:16px;background:var(--surface);box-shadow:var(--shadow);transition:.2s
+}
+.card:hover{transform:translateY(-4px);border-color:#a9baff;box-shadow:0 18px 42px rgba(25,44,85,.12)}
+.card-top{display:flex;justify-content:space-between;align-items:start}
+.card-icon{display:grid;place-items:center;width:55px;height:55px;border-radius:13px;background:var(--primary2);color:var(--primary);font:700 27px Georgia}
+.category-dot{padding:4px 8px;border-radius:20px;background:#f3f5f9;color:var(--muted);font-size:10px}
+.card h3{margin:15px 0 7px;font-size:17px}
+.card p{margin:0 0 16px;color:var(--muted);font-size:13px}
+.card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:13px;border-top:1px solid var(--line)}
+.card-code{color:var(--primary);font-weight:800}
+.open-btn{border:0;background:transparent;color:var(--primary);font-size:12px;font-weight:700}
+.empty{padding:40px;border:1px solid var(--line);border-radius:16px;background:#fff;color:var(--muted);text-align:center}
+.modal-overlay{display:none;position:fixed;z-index:100;inset:0;padding:20px;overflow:auto;background:rgba(8,17,38,.76);backdrop-filter:blur(5px)}
+.modal-overlay.open{display:grid;place-items:center}
+.modal{
+  position:relative;width:min(1050px,100%);max-height:calc(100vh - 40px);overflow:auto;
+  border-radius:21px;background:#fff;box-shadow:0 30px 90px #07112788
+}
+.modal-header{position:sticky;z-index:3;top:0;display:flex;justify-content:space-between;gap:20px;padding:24px 27px 18px;border-bottom:1px solid var(--line);background:#fff}
+.modal-header h2{margin:0 0 7px;font-size:27px}
+.modal-tag{display:inline-block;padding:5px 10px;border-radius:20px;background:var(--primary2);color:var(--primary);font-size:12px}
+.close{flex:none;width:38px;height:38px;border:0;border-radius:10px;background:#eef1f6;color:var(--ink);font-size:23px}
+.close:hover{background:#e3e8f1}
+.modal-body{padding:22px 27px 28px}
+.drawing-panel{border:1px solid var(--line);border-radius:15px;overflow:hidden;background:#fbfcff}
+.drawing-title{display:flex;justify-content:space-between;padding:11px 15px;border-bottom:1px solid var(--line);color:var(--muted);font-size:12px}
+.drawing{padding:10px}
+.drawing svg{display:block;width:100%;height:330px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.legend span{padding:6px 9px;border-radius:8px;background:#f1f4f9;color:var(--muted);font-size:12px}
+.legend b{color:var(--ink)}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:16px}
+.info-box{padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--surface2)}
+.info-box.wide{grid-column:1/-1}
+.info-box h3{margin:0 0 9px;font-size:15px}
+.info-box p{margin:0;color:var(--muted)}
+.code-box{margin-bottom:10px;padding:13px;border:1px solid #ccd7ff;border-radius:10px;background:#fff;color:var(--primary);font:700 21px Georgia;text-align:center}
+.steps{display:grid;gap:9px;margin:0;padding:0;list-style:none}
+.steps li{position:relative;padding-left:31px;color:var(--muted)}
+.steps b{position:absolute;left:0;top:0;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:11px}
+.warning{border-left:4px solid var(--orange);background:#fff9f1}
+.no-scroll{overflow:hidden}
+svg text{font-family:Arial,sans-serif}
+@media(max-width:1050px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero-badge{display:none}}
+@media(max-width:760px){
+  .sidebar{position:static;width:auto;padding:13px}.logo{margin:0 0 12px}.side-label,.side-note{display:none}.nav{display:flex;overflow:auto}.nav button{flex:none;width:auto}.nav button span:last-child{display:none}
+  .main{margin:0;padding:20px 15px 45px}.topbar{display:none}.hero{margin:22px 0}.toolbar{flex-direction:column}.search-wrap{max-width:none}.grid,.info-grid{grid-template-columns:1fr}.modal-overlay{padding:0}.modal{max-height:100vh;border-radius:0}.drawing svg{height:250px}.modal-body,.modal-header{padding-left:16px;padding-right:16px}
+}
+@media(max-width:470px){.grid{grid-template-columns:1fr}.card{min-height:220px}.filter{width:100%}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo"><div class="logo-mark">⌁</div><span>Чертёжник</span></div>
+    <div class="side-label">Разделы</div>
+    <nav class="nav" id="sideNav">
+      <button class="active" data-filter="all"><span class="nav-icon">⌂</span><span>Все обозначения</span></button>
+      <button data-filter="geometry"><span class="nav-icon">⊥</span><span>Геометрические допуски</span></button>
+      <button data-filter="dimensions"><span class="nav-icon">↔</span><span>Размеры</span></button>
+      <button data-filter="surfaces"><span class="nav-icon">〰</span><span>Поверхности</span></button>
+      <button data-filter="connections"><span class="nav-icon">⚙</span><span>Соединения</span></button>
+    </nav>
+    <div class="side-label">Полезное</div>
+    <nav class="nav">
+      <button id="standardsBtn"><span class="nav-icon">▤</span><span>Основные ГОСТ</span></button>
+    </nav>
+    <div class="side-note"><b>Как пользоваться?</b>Нажмите на карточку, чтобы открыть отдельный пример чертежа и подробную расшифровку.</div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar"><span>Главная / Справочник обозначений</span><div class="mode">Интерактивный учебник <div class="avatar">Ч</div></div></div>
+    <section class="hero">
+      <div>
+        <h1>Читайте технические<br>чертежи уверенно</h1>
+        <p>Наглядный справочник по геометрическим допускам, размерам, шероховатости, резьбам, посадкам и шлицевым соединениям. У каждой темы — собственная схема и подробная расшифровка.</p>
+      </div>
+      <div class="hero-badge"><strong id="totalCount">0</strong><span>интерактивных примеров</span></div>
+    </section>
+
+    <div class="toolbar">
+      <label class="search-wrap"><span>⌕</span><input class="search" id="search" placeholder="Соосность, биение, резьба, радиус..."></label>
+      <select class="filter" id="filter">
+        <option value="all">Все разделы</option>
+        <option value="geometry">Геометрические допуски</option>
+        <option value="dimensions">Размеры и выноски</option>
+        <option value="surfaces">Шероховатость</option>
+        <option value="connections">Резьбы и соединения</option>
+      </select>
+    </div>
+    <div id="catalog"></div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="overlay" role="dialog" aria-modal="true">
+  <article class="modal">
+    <header class="modal-header">
+      <div><h2 id="modalTitle"></h2><span class="modal-tag" id="modalTag"></span></div>
+      <button class="close" id="closeModal" aria-label="Закрыть">×</button>
+    </header>
+    <div class="modal-body">
+      <section class="drawing-panel">
+        <div class="drawing-title"><span>Учебный фрагмент чертежа</span><span>Схема не в масштабе</span></div>
+        <div class="drawing" id="drawing"></div>
+      </section>
+      <div class="legend" id="legend"></div>
+      <div class="info-grid">
+        <section class="info-box"><h3>Что это такое</h3><p id="description"></p></section>
+        <section class="info-box"><h3>Где применяется</h3><p id="usage"></p></section>
+        <section class="info-box"><h3>Обозначение</h3><div class="code-box" id="symbol"></div><p id="reading"></p></section>
+        <section class="info-box"><h3>Как прочитать по шагам</h3><ol class="steps" id="steps"></ol></section>
+        <section class="info-box wide warning"><h3>Важно запомнить</h3><p id="rule"></p></section>
+      </div>
+    </div>
+  </article>
+</div>
+
+<script>
+"use strict";
+// Исправлено: добавлены описания разделов
+const GROUPS = {
+  geometry: { name: "Геометрические допуски", about: "Форма, ориентация и расположение" },
+  dimensions: { name: "Размеры и выноски", about: "Линейные, угловые, диаметры" },
+  surfaces: { name: "Шероховатость", about: "Параметры обработки поверхности" },
+  connections: { name: "Резьбы и соединения", about: "Резьбовые, шлицевые, посадки" }
+};
+
+const ITEMS=[
+{id:"coaxial",group:"geometry",icon:"◎",title:"Соосность",symbol:"◎ ⌀0,02 A",
+description:"Допуск соосности ограничивает смещение оси контролируемой цилиндрической поверхности относительно базовой оси. В показанном примере фактическая ось правой шейки должна целиком находиться внутри цилиндрической зоны диаметром 0,02 мм, ось которой совпадает с базой A.",
+usage:"Ступенчатые валы, посадочные шейки под подшипники, отверстия в корпусах, шпиндели и детали, вращающиеся вокруг общей оси.",
+reading:"Первое поле рамки — символ соосности. Знак ⌀ перед 0,02 сообщает, что зона допуска цилиндрическая. Последнее поле A задаёт базовую ось.",
+steps:["Найдите контролируемую поверхность, к которой подходит выноска.","Найдите базовый элемент A и постройте его теоретическую ось.","Представьте цилиндрическую зону ⌀0,02 вокруг базовой оси.","Убедитесь, что фактическая ось контролируемой поверхности не выходит из зоны."],
+rule:"Соосность контролирует положение оси, а не разницу диаметров. Для быстро вращающихся деталей конструктор может вместо соосности назначить биение.",
+legend:["A — базовая ось","⌀0,02 — цилиндрическая зона","Синяя линия — фактическая ось"]},
+
+{id:"perpendicular",group:"geometry",icon:"⊥",title:"Перпендикулярность",symbol:"⊥ 0,03 A",
+description:"Допуск перпендикулярности ограничивает отклонение поверхности, линии или оси от теоретического угла 90° относительно базы. Торец на схеме должен располагаться между двумя параллельными плоскостями, перпендикулярными базе A и удалёнными друг от друга на 0,03 мм.",
+usage:"Торцы валов, фланцы, опорные стенки, оси отверстий, направляющие и монтажные поверхности.",
+reading:"⊥ задаёт вид допуска; 0,03 — ширина зоны; A — база, относительно которой формируется угол 90°.",
+steps:["Определите поверхность, к которой относится рамка.","Найдите базу A.","Постройте идеальное направление 90° к базе.","Проверьте, помещается ли реальная поверхность в зону шириной 0,03."],
+rule:"Если перед значением стоит ⌀, контролируется ось в цилиндрической зоне. Без ⌀ для поверхности обычно применяются две параллельные плоскости.",
+legend:["A — базовая плоскость","90° — теоретически точный угол","0,03 — ширина зоны"]},
+
+{id:"parallel",group:"geometry",icon:"∥",title:"Параллельность",symbol:"∥ 0,05 A",
+description:"Допуск параллельности требует, чтобы контролируемая поверхность находилась между двумя параллельными плоскостями, ориентированными параллельно базовой плоскости A. Расстояние между границами зоны равно 0,05 мм.",
+usage:"Направляющие станков, опорные плоскости, поверхности скольжения, оси валов и отверстий.",
+reading:"∥ — параллельность; 0,05 — ширина зоны допуска; A — базовая поверхность.",
+steps:["Найдите базовую поверхность A.","Проведите теоретическую плоскость параллельно A.","Расположите вокруг неё две границы зоны на суммарном расстоянии 0,05.","Вся контролируемая поверхность должна остаться между границами."],
+rule:"Параллельность относится к ориентации. Она одновременно ограничивает часть отклонений формы, но не задаёт расстояние до базы.",
+legend:["A — база","Зелёная линия — база","Пунктир — границы зоны"]},
+
+{id:"flatness",group:"geometry",icon:"▱",title:"Плоскостность",symbol:"▱ 0,04",
+description:"Плоскостность ограничивает форму одной поверхности. Все точки реальной поверхности должны находиться между двумя параллельными плоскостями на расстоянии 0,04 мм друг от друга.",
+usage:"Уплотнительные плоскости, столы станков, крышки корпусов, опорные и монтажные поверхности.",
+reading:"▱ — символ плоскостности; 0,04 — полная ширина зоны допуска. Ссылка на базу отсутствует.",
+steps:["Выберите контролируемую поверхность.","Найдите две наиболее близкие параллельные плоскости, охватывающие её профиль.","Измерьте расстояние между этими плоскостями.","Оно не должно превышать 0,04 мм."],
+rule:"Плоскостность — допуск формы, поэтому база не нужна. Она не контролирует угол поверхности относительно других элементов.",
+legend:["0,04 — расстояние между плоскостями","Волнистая линия — реальная поверхность"]},
+
+{id:"straightness",group:"geometry",icon:"—",title:"Прямолинейность",symbol:"— 0,03",
+description:"Прямолинейность ограничивает отклонение образующей или линии поверхности от идеальной прямой. На схеме профиль должен находиться между двумя параллельными прямыми, расстояние между которыми 0,03 мм.",
+usage:"Образующие валов, кромки, направляющие, длинные плоские элементы и оси цилиндрических деталей.",
+reading:"Прямая черта — символ прямолинейности; 0,03 — ширина зоны допуска.",
+steps:["Определите контролируемую линию или образующую.","Постройте две параллельные прямые, охватывающие реальный профиль.","Найдите минимальное расстояние между ними.","Сравните результат с допуском 0,03."],
+rule:"Если перед допуском оси указан ⌀, зона становится цилиндрической. Для обычной образующей знак диаметра не ставят.",
+legend:["Чёрная линия — реальный профиль","Пунктир — границы зоны"]},
+
+{id:"position",group:"geometry",icon:"⌖",title:"Позиционный допуск",symbol:"⌖ ⌀0,10 A B",
+description:"Позиционный допуск ограничивает смещение оси отверстия относительно теоретически точного положения. Ось каждого отверстия должна лежать внутри цилиндрической зоны ⌀0,10, центр которой задан базами A, B и точными рамочными размерами.",
+usage:"Группы крепёжных отверстий, отверстия под штифты, фланцы, корпусные детали и взаимозаменяемые сборки.",
+reading:"⌖ — позиционный допуск; ⌀0,10 — диаметр зоны; A — первичная база; B — вторичная база.",
+steps:["Установите деталь по базам A и B.","По рамочным размерам найдите теоретический центр отверстия.","Постройте цилиндрическую зону ⌀0,10 вокруг идеальной оси.","Фактическая ось отверстия должна находиться внутри неё."],
+rule:"Размер отверстия и его позиция контролируются отдельно. Рамочные размеры теоретически точны и собственного допуска ± не имеют.",
+legend:["Рамочные размеры — точные","Красный крест — идеальный центр","Синий крест — фактический центр"]},
+
+{id:"radial-runout",group:"geometry",icon:"↗",title:"Радиальное биение",symbol:"↗ 0,01 A",
+description:"Радиальное биение — разность максимального и минимального показаний индикатора за один полный оборот детали. Индикатор касается цилиндрической поверхности перпендикулярно оси вращения.",
+usage:"Посадочные шейки, роторы, шпиндели, поверхности под подшипники, шкивы и зубчатые колёса.",
+reading:"Одинарная стрелка — биение; 0,01 — допустимая разность показаний; A — базовая ось вращения.",
+steps:["Установите деталь по базовой оси A.","Поставьте индикатор на заданном поперечном сечении.","Плавно поверните деталь на 360°.","Разность наибольшего и наименьшего показаний не должна превышать 0,01."],
+rule:"Радиальное биение комплексно отражает несоосность и отклонение круглости в конкретном сечении.",
+legend:["A — ось вращения","Индикатор касается радиально","360° — полный оборот"]},
+
+{id:"face-runout",group:"geometry",icon:"↕",title:"Торцевое биение",symbol:"↗ 0,02 A",
+description:"Торцевое биение показывает изменение положения торца вдоль оси при полном обороте детали. Наконечник индикатора устанавливается на торец параллельно базовой оси.",
+usage:"Фланцы, диски, упорные буртики, торцы ступиц и поверхности под осевые подшипники.",
+reading:"Символ биения и 0,02 задают допустимую разность показаний; A определяет ось вращения.",
+steps:["Базируйте деталь по оси A.","Установите индикатор на выбранном радиусе торца.","Выполните полный оборот детали.","Разность показаний должна быть не более 0,02."],
+rule:"Результат зависит от радиуса установки индикатора. Если нужно контролировать весь торец, назначают полное биение.",
+legend:["Индикатор направлен вдоль оси","A — ось вращения","0,02 — предел показаний"]},
+
+{id:"linear",group:"dimensions",icon:"↔",title:"Линейный размер",symbol:"50 ±0,02",
+description:"Линейный размер задаёт расстояние между двумя элементами. Номинальный размер равен 50 мм, а симметричный допуск ±0,02 мм определяет допустимый диапазон от 49,98 до 50,02 мм.",
+usage:"Длина, ширина, высота, толщина, глубина и расстояния между осями или поверхностями.",
+reading:"50 — номинал; +0,02 — верхнее отклонение; −0,02 — нижнее отклонение. Если единицы не указаны, на машиностроительном чертеже обычно используются миллиметры.",
+steps:["Найдите начала выносных линий.","Определите измеряемые поверхности.","Прочитайте номинал 50.","Рассчитайте предельные размеры: 50−0,02 и 50+0,02."],
+rule:"Размерные линии не должны совпадать с линиями контура. Размер на рабочем чертеже обычно указывают один раз.",
+legend:["Стрелки ограничивают размер","Выносные линии идут от детали","49,98…50,02 — допустимый диапазон"]},
+
+{id:"diameter",group:"dimensions",icon:"⌀",title:"Диаметр",symbol:"⌀24 H7",
+description:"Знак ⌀ сообщает, что размер относится к окружности или цилиндрической поверхности. В примере номинальный диаметр отверстия равен 24 мм, а H7 задаёт поле допуска отверстия.",
+usage:"Отверстия, валы, цилиндрические выступы, окружности и посадочные поверхности.",
+reading:"⌀ — диаметр; 24 — номинальный размер; H — основное отклонение отверстия; 7 — квалитет точности.",
+steps:["Найдите поверхность, на которую указывает размер.","Убедитесь, что элемент цилиндрический.","Прочитайте номинальный диаметр 24.","По таблице допусков определите границы поля H7."],
+rule:"Для отверстий поля допуска обозначают прописными буквами, для валов — строчными.",
+legend:["⌀ — диаметр","24 — номинал","H7 — поле допуска отверстия"]},
+
+{id:"radius",group:"dimensions",icon:"R",title:"Радиус",symbol:"R12",
+description:"Радиус задаёт расстояние от центра дуги до её контура. Размерная линия направляется к дуге и имеет одну стрелку со стороны криволинейной поверхности.",
+usage:"Скругления, галтели, канавки, дуговые пазы и криволинейные контуры.",
+reading:"R — признак радиуса; 12 — значение в миллиметрах.",
+steps:["Найдите дугу, к которой подходит стрелка.","Определите центр кривизны по направлению линии.","Прочитайте значение R12.","Проверьте, относится ли размер к внутреннему или наружному скруглению."],
+rule:"Для полной окружности применяют ⌀, для дуги — R. Для сферы перед размером дополнительно может указываться «Сфера» или соответствующий знак.",
+legend:["Точка — центр дуги","R12 — расстояние до контура","Одна стрелка у дуги"]},
+
+{id:"angle",group:"dimensions",icon:"∠",title:"Угловой размер",symbol:"45° ±1°",
+description:"Угловой размер определяет взаимный наклон двух линий или поверхностей. Здесь номинальный угол равен 45°, а допустимый диапазон составляет 44…46°.",
+usage:"Фаски, конусы, клинья, наклонные отверстия и поверхности.",
+reading:"45° — номинальный угол; ±1° — симметричный угловой допуск.",
+steps:["Найдите вершину угла.","Определите две стороны, между которыми проведена размерная дуга.","Прочитайте номинальное значение.","Учтите указанный допуск ±1°."],
+rule:"Центр размерной дуги должен совпадать с вершиной измеряемого угла.",
+legend:["Дуга — размерная линия","45° — номинал","44…46° — допустимо"]},
+
+{id:"chamfer",group:"dimensions",icon:"⌁",title:"Фаска",symbol:"2×45°",
+description:"Фаска — скошенная часть кромки. Запись 2×45° означает фаску линейным размером 2 мм под углом 45°. На круглой детали фаска обычно выполняется по всей окружности.",
+usage:"Удаление острых кромок, облегчение сборки, заход резьбы, подготовка под сварку и предотвращение сколов.",
+reading:"2 — линейный размер фаски; знак × связывает параметры; 45° — угол наклона.",
+steps:["Найдите скошенную кромку.","Прочитайте линейный размер 2 мм.","Прочитайте угол 45°.","Уточните количество одинаковых фасок, если оно указано."],
+rule:"Запись C2 часто применяют для фаски 2×45°, но её допустимость следует проверять по стандарту и правилам предприятия.",
+legend:["2 мм — размер фаски","45° — угол","Выноска указывает на скос"]},
+
+{id:"roughness-ra",group:"surfaces",icon:"Ra",title:"Шероховатость Ra",symbol:"Ra 1,6",
+description:"Ra — среднее арифметическое абсолютных отклонений профиля от средней линии на базовой длине. Значение 1,6 задаётся в микрометрах и характеризует требуемую чистоту поверхности.",
+usage:"Посадочные, трущиеся, уплотнительные, направляющие и декоративные поверхности.",
+reading:"Основной знак связывает требование с поверхностью; Ra — параметр; 1,6 — максимально допустимое значение в мкм, если не оговорено иное.",
+steps:["Найдите поверхность, к которой относится знак.","Определите параметр — здесь Ra.","Прочитайте значение 1,6 мкм.","По технологии выберите обработку, способную обеспечить это значение."],
+rule:"Чем меньше Ra, тем более гладкой обычно должна быть поверхность. Шероховатость не заменяет допуск формы.",
+legend:["Ra — параметр профиля","1,6 мкм — требование","Выноска относится к поверхности"]},
+
+{id:"machining",group:"surfaces",icon:"⌁",title:"Обработка с удалением материала",symbol:"⌁ Ra 3,2",
+description:"Дополнительная горизонтальная черта на знаке шероховатости означает, что поверхность должна быть получена удалением слоя материала: точением, фрезерованием, шлифованием или другой механической обработкой.",
+usage:"Поверхности, для которых технологически обязательно снять припуск и получить заданную шероховатость.",
+reading:"Знак с чертой задаёт обязательное удаление материала; Ra 3,2 — требуемая шероховатость.",
+steps:["Определите поверхность по выноске.","Проверьте наличие горизонтальной черты на символе.","Прочитайте параметр Ra 3,2.","Выберите подходящий способ механической обработки."],
+rule:"Знак с окружностью, наоборот, запрещает удаление материала. Не путайте эти два варианта.",
+legend:["Черта — обработка обязательна","Ra 3,2 — шероховатость","Поверхность после обработки"]},
+
+{id:"thread",group:"connections",icon:"M",title:"Метрическая резьба",symbol:"M12×1,5–6H",
+description:"Метрическая резьба имеет треугольный профиль с углом 60°. Запись относится к внутренней резьбе номинального диаметра 12 мм, мелкого шага 1,5 мм и поля допуска 6H.",
+usage:"Болты, гайки, винты, шпильки, резьбовые отверстия, штуцеры и разъёмные соединения.",
+reading:"M — метрическая резьба; 12 — номинальный диаметр; 1,5 — шаг; 6H — поле допуска внутренней резьбы.",
+steps:["По букве M определите тип резьбы.","Прочитайте номинальный диаметр 12 мм.","Определите шаг 1,5 мм.","По 6H установите поле допуска внутренней резьбы."],
+rule:"Крупный стандартный шаг обычно можно не указывать. Для наружной резьбы часто применяют строчное поле 6g.",
+legend:["M — метрический профиль 60°","12 — номинальный диаметр","1,5 — шаг","6H — допуск гайки/отверстия"]},
+
+{id:"fit",group:"connections",icon:"⚙",title:"Посадка отверстия и вала",symbol:"⌀40 H7/h6",
+description:"Посадка — характер соединения, получаемый сочетанием полей допусков отверстия и вала. H7/h6 — посадка в системе отверстия с гарантированным минимальным зазором, равным нулю при предельном сочетании размеров.",
+usage:"Подшипниковые узлы, втулки, зубчатые колёса, муфты и цилиндрические направляющие.",
+reading:"⌀40 — общий номинал; H7 — поле отверстия; h6 — поле вала. Заглавная буква относится к отверстию, строчная — к валу.",
+steps:["Прочитайте общий диаметр 40.","Определите поле отверстия H7.","Определите поле вала h6.","По таблицам предельных отклонений рассчитайте минимальный и максимальный зазоры."],
+rule:"H7/h6 обычно относят к посадкам с зазором, а не к переходным. Конкретные значения отклонений берут из таблиц для номинального диапазона.",
+legend:["H7 — отверстие","h6 — вал","Синий промежуток — зазор"]},
+
+{id:"spline",group:"connections",icon:"✣",title:"Прямобочное шлицевое соединение",symbol:"d–8×36×40 H7/f7×7",
+description:"Шлицевое соединение состоит из вала с наружными продольными зубьями и ступицы с ответными внутренними впадинами. Зубья передают крутящий момент по нескольким боковым поверхностям, поэтому соединение выдерживает большую нагрузку, чем одна шпонка. В примере показано центрирование по внутреннему диаметру d.",
+usage:"Коробки передач, карданные и приводные валы, муфты, ступицы зубчатых колёс и подвижные осевые соединения.",
+reading:"d — центрирование по внутреннему диаметру; 8 — число шлицев; 36 — внутренний диаметр d; 40 — наружный диаметр D; H7/f7 — посадка по центрирующему диаметру; 7 — ширина зуба b.",
+steps:["Определите способ центрирования: d, D или b.","Прочитайте число зубьев z = 8.","Прочитайте внутренний диаметр d = 36 мм.","Прочитайте наружный диаметр D = 40 мм.","Определите посадку H7/f7 и ширину зуба b = 7 мм."],
+rule:"Формат записи зависит от типа шлицев и стандарта. Эвольвентные шлицы обозначаются иначе и обычно задаются модулем m, числом зубьев z и углом профиля.",
+legend:["d=36 — внутренний диаметр","D=40 — наружный диаметр","z=8 — число зубьев","b=7 — ширина зуба","H7/f7 — посадка"]},
+
+{id:"bolt",group:"connections",icon:"🔩",title:"Болтовое соединение",symbol:"Болт M12×50–8.8",
+description:"Болтовое соединение стягивает детали болтом и гайкой. Шайба распределяет давление и защищает поверхность. Длина болта 50 мм обычно измеряется от опорной поверхности головки до конца стержня.",
+usage:"Фланцы, корпуса, крышки, рамы и любые разъёмные сборочные соединения.",
+reading:"M12 — метрическая резьба диаметром 12 мм; 50 — длина болта; 8.8 — класс прочности.",
+steps:["Определите диаметр резьбы M12.","Проверьте длину болта 50 мм.","Прочитайте класс прочности 8.8.","Проверьте гайку, шайбу и необходимый выход резьбы."],
+rule:"На продольном разрезе сборки стандартные крепёжные детали обычно не штрихуют, если секущая плоскость проходит вдоль их оси.",
+legend:["Головка болта","Шайба","Гайка","M12 — резьба"]}
+];
+
+const $=s=>document.querySelector(s);
+const catalog=$("#catalog"),overlay=$("#overlay");
+$("#totalCount").textContent=ITEMS.length;
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+const defs=`<defs>
+<marker id="ab" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#4169e1"/></marker>
+<marker id="ae" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse"><path d="M0 0L8 4L0 8z" fill="#172033"/></marker>
+<pattern id="hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="9" stroke="#a7b1c5" stroke-width="2"/></pattern>
+</defs>`;
+function frame(text,x=470,y=50,w=235){return `<rect x="${x}" y="${y}" width="${w}" height="38" fill="white" stroke="#4169e1" stroke-width="2"/><text x="${x+12}" y="${y+25}" fill="#4169e1" font-size="18">${esc(text)}</text>`}
+function svgWrap(body){return `<svg viewBox="0 0 820 330" role="img">${defs}${body}</svg>`}
+
+function drawing(x){
+const ink="#172033",blue="#4169e1",green="#07966d",orange="#e8892e",muted="#66728a";
+if(x.id==="coaxial")return svgWrap(`
+<text x="25" y="28" fill="${ink}" font-size="18" font-weight="700">Ступенчатый вал: контроль оси правой шейки</text>
+<path d="M95 115h245v-27h245v114H340v-27H95z" fill="url(#hatch)" stroke="${ink}" stroke-width="3"/>
+<line x1="65" y1="145" x2="630" y2="145" stroke="${green}" stroke-width="2" stroke-dasharray="10 6"/>
+<line x1="340" y1="151" x2="585" y2="151" stroke="${blue}" stroke-width="3"/>
+<line x1="585" y1="105" x2="690" y2="75" stroke="${blue}" stroke-width="2" marker-end="url(#ab)"/>
+${frame(x.symbol,525,35,210)}
+<path d="M95 202v50h55" fill="none" stroke="${ink}" stroke-width="2"/><rect x="52" y="243" width="43" height="30" fill="white" stroke="${green}" stroke-width="2"/><text x="67" y="264" fill="${green}" font-size="18">A</text>
+<text x="70" y="300" fill="${muted}" font-size="14">Зелёная ось — база A</text><text x="340" y="300" fill="${blue}" font-size="14">Синяя ось должна быть внутри зоны ⌀0,02</text>`);
+
+if(x.id==="perpendicular")return svgWrap(`
+<text x="25" y="28" fill="${ink}" font-size="18" font-weight="700">Торец должен быть перпендикулярен базе A</text>
+<path d="M150 235h500v32H150z" fill="url(#hatch)" stroke="${ink}" stroke-width="3"/>
+<path d="M350 80h75v155h-75z" fill="url(#hatch)" stroke="${ink}" stroke-width="3"/>
+<line x1="342" y1="65" x2="342" y2="235" stroke="${blue}" stroke-dasharray="7 5"/><line x1="350" y1="65" x2="350" y2="235" stroke="${blue}" stroke-dasharray="7 5"/>
+<path d="M350 205h30v30" fill="none" stroke="${orange}" stroke-width="3"/>
+${frame(x.symbol,500,63,185)}
+<line x1="590" y1="101" x2="425" y2="120" stroke="${blue}" marker-end="url(#ab)"/>
+<rect x="91" y="238" width="42" height="30" fill="white" stroke="${green}" stroke-width="2"/><text x="105" y="259" fill="${green}" font-size="18">A</text>
+<text x="150" y="303" fill="${muted}" font-size="14">Зона 0,03 образована двумя плоскостями под углом 90° к A</text>`);
+
+if(x.id==="parallel")return svgWrap(`
+<text x="25" y="28" fill="${ink}" font-size="18" font-weight="700">Верхняя поверхность параллельна базе A</text>
+<path d="M125 105h550v105H125z" fill="url(#hatch)" stroke="${ink}" stroke-width="3"/>
+<line x1="125" y1="91" x2="675" y2="91" stroke="${blue}" stroke-width="2" stroke-dasharray="8 5"/>
+<line x1="125" y1="99" x2="675" y2="99" stroke="${blue}" stroke-width="2" stroke-dasharray="8 5"/>
+<line x1="125" y1="222" x2="675" y2="222" stroke="${green}" stroke-width="5"/>
+${frame(x.symbol,505,38,180)}<line x1="585" y1="76" x2="550" y2="98" stroke="${blue}" marker-end="url(#ab)"/>
+<rect x="70" y="207" width="42" height="30" fill="white" stroke="${green}" stroke-width="2"/><text x="84" y="228" fill="${green}" font-size="18">A</text>
+<text x="190" y="280" fill="${muted}" font-size="14">Расстояние между пунктирными границами равно 0,05 мм</text>`);
+
+if(x.id==="flatness"||x.id==="straightness")return svgWrap(`
+<text x="25" y="28" fill="${ink}" font-size="18" font-weight="700">${x.id==="flatness"?"Контроль всей плоскости":"Контроль прямолинейности образующей"}</text>
+<line x1="110" y1="90" x2="700" y2="90" stroke="${blue}" stroke-width="2" stroke-dasharray="8 5"/>
+<line x1="110" y1="155" x2="700" y2="155" stroke="${blue}" stroke-width="2" stroke-dasharray="8 5"/>
+<path d="M110 130 C180 75,235 166,310 118 S450 170,520 115 S630 160,700 110" fill="none" stroke="${ink}" stroke-width="4"/>
+<line x1="745" y1="90" x2="745" y2="155" stroke="${blue}" marker-start="url(#ab)" marker-end="url(#ab)"/>
+<text x="758" y="128" fill="${blue}" font-size="17">${x.symbol.split(" ").pop()}</text>
+${frame(x.symbol,290,210,180)}
+<text x="160" y="292" fill="${muted}" font-size="14">Реальный профиль должен полностью находиться между границами зоны</text>`);
+
+if(x.id==="position")return svgWrap(`
+<text x="25" y="28" fill="${ink}" font-size="18" font-weight="700">Положение отверстия относительно баз A и B</text>
+<rect x="145" y="70" width="430" height="190" rx="3" fill="url(#hatch)" stroke="${ink}" stroke-width="3"/>
+<circle cx="360" cy="165" r="43" fill="white" stroke="${ink}" stroke-width="3"/>
+<line x1="330" y1="165" x2="390" y2="165" stroke="${orange}" stroke-width="2"/><line x1="360" y1="135" x2="360" y2="195" stroke="${orange}" stroke-width="2"/>
+<line x1="350" y1="155" x2="372" y2="177" stroke="${blue}" stroke-width="3"/><line x1="372" y1="155" x2="350" y2="177" stroke="${blue}" stroke-width="3"/>
+<circle cx="360" cy="165" r="12" fill="none" stroke="${blue}" stroke-dasharray="4 3"/>
+<rect x="268" y="43" width="184" height="25" fill="white" stroke="${ink}"/><text x="330" y="61" fill="${ink}">100</text>
+<rect x="112" y="118" width="31" height="94" fill="white" stroke="${ink}"/><text x="126" y="172" fill="${ink}" transform="rotate(-90 126 172)">50</text>
+${frame(x.symbol,530,18,230)}
+<rect x="90" y="230" width="40" height="28" fill="white" stroke="${green}"/><text x="104" y="250" fill="${green}">A</text>
+<rect x="577" y="230" width="40" height="28" fill="white" stroke="${green}"/><text x="591" y="250" fill="${green}">B</text>
+<text x="150" y="300" fill="${muted}" font-size="14">Оранжевый центр — теоретический; синий — фактический</text>`);
+
+if(x.id==="radial-runout"||x.id==="face-runout")return svgWrap(`
+<text x="25" y="28" fill="${ink}" font-size="18" font-weight="700">${x.id==="radial-runout"?"Радиальная установка индикатора":"Осевая установка индикатора на торец"}</text>
+<path d="M130 125h430v80H130z" fill="url(#hatch)" stroke="${ink}" stroke-width="3"/>
+<ellipse cx="560" cy="165" rx="30" ry="40" fill="white" stroke="${ink}" stroke-width="3"/>
+<line x1="80" y1="165" x2="640" y2="165" stroke="${green}" stroke-width="2" stroke-dasharray="9 6"/>
+<path d="M175 95q-35 18 0 38" fill="none" stroke="${orange}" stroke-width="3" marker-end="url(#ab)"/>
+${x.id==="radial-runout"?`<circle cx="410" cy="73" r="27" fill="white" stroke="${ink}" stroke-width="3"/><line x1="410" y1="100" x2="410" y2="125" stroke="${orange}" stroke-width="4"/><line x1="410" y1="73" x2="425" y2="58" stroke="${ink}" stroke-width="2"/>`:`<circle cx="645" cy="95" r="27" fill="white" stroke="${ink}" stroke-width="3"/><line x1="618" y1="95" x2="560" y2="95" stroke="${orange}" stroke-width="4"/><line x1="645" y1="95" x2="659" y2="80" stroke="${ink}" stroke-width="2"/>`}
+${frame(x.symbol,505,245,185)}
+<rect x="75" y="151" width="40" height="28" fill="white" stroke="${green}"/><text x="89" y="171" fill="${green}">A</text>
+<text x="150" y="292" fill="${muted}" font-size="14">Разность max−min за один оборот не более ${x.id==="radial-runout"?"0,01":"0,02"} мм</text>`);
+
+if(x.id==="linear")return svgWrap(`
+<text x="25" y="28" fill="${ink}" font-size="18" font-weight="700">Линейный размер между торцами</text>
+<rect x="170" y="120" width="430" height="105" fill="url(#hatch)" stroke="${ink}" stroke-width="3"/>
+<line x1="170" y1="105" x2="170" y2="55" stroke="${ink}"/><line x1="600" y1="105" x2="600" y2="55" stroke="${ink}"/>
+<line x1="170" y1="70" x2="600" y2="70" stroke="${blue}" stroke-width="2" marker-start="url(#ab)" marker-end="url(#ab)"/>
+<rect x="322" y="48" width="125" height="34" fill="white"/><text x="332" y="72" fill="${blue}" font-size="20">50 ±0,02</text>
+<text x="214" y="270" fill="${muted}" font-size="15">Допустимый действительный размер: 49,98…50,02 мм</text>`);
+
+if(x.id==="diameter")return svgWrap(`
+<text x="25" y="28" fill="${ink}" font-size="18" font-weight="700">Диаметр отверстия с полем допуска</text>
+<circle cx="330" cy="165" r="100" fill="url(#hatch)" stroke="${ink}" stroke-width="3"/><circle cx="330" cy="165" r="58" fill="white" stroke="${ink}" stroke-width="3"/>
+<line x1="272" y1="223" x2="388" y2="107" stroke="${blue}" stroke-width="2" marker-start="url(#ab)" marker-end="url(#ab)"/>
+<line x1="388" y1="107" x2="540" y2="65" stroke="${blue}" stroke-width="2"/>
+<text x="555" y="70" fill="${blue}" font-size="22">⌀24 H7</text>
+<line x1="240" y1="165" x2="420" y2="165" stroke="${green}" stroke-dasharray="7 5"/><line x1="330" y1="75" x2="330" y2="255" stroke="${green}" stroke-dasharray="7 5"/>
+<text x="190" y="295" fill="${muted}" font-size="14">Стрелки касаются окружности, размерная линия проходит через центр</text>`);
+
+if(x.id==="radius")return svgWrap(`
+<text x="25" y="28" fill="${ink}" font-size="18" font-weight="700">Радиус скругления</text>
+<path d="M130 255h210a140 140 0 0 0 140-140V60h100v195z" fill="url(#hatch)" stroke="${ink}" stroke-width="3"/>
+<circle cx="340" cy="115" r="5" fill="${orange}"/>
+<line x1="340" y1="115" x2="436" y2="211" stroke="${blue}" stroke-width="2" marker-end="url(#ab)"/>
+<text x="355" y="160" fill="${blue}" font-size="22">R12</text>
+<line x1="320" y1="115" x2="360" y2="115" stroke="${green}"/><line x1="340" y1="95" x2="340" y2="135" stroke="${green}"/>
+<text x="165" y="300" fill="${muted}" font-size="14">Точка показывает центр; стрелка упирается в дугу скругления</text>`);
+
+if(x.id==="angle")return svgWrap(`
+<text x="25" y="28" fill="${ink}" font-size="18" font-weight="700">Угол между двумя поверхностями</text>
+<path d="M160 245h500M160 245L520 70" fill="none" stroke="${ink}" stroke-width="5"/>
+<path d="M280 245a120 120 0 0 0-12-52" fill="none" stroke="${blue}" stroke-width="2" marker-start="url(#ab)" marker-end="url(#ab)"/>
+<text x="285" y="198" fill="${blue}" font-size="21">45° ±1°</text>
+<circle cx="160" cy="245" r="5" fill="${orange}"/>
+<text x="220" y="295" fill="${muted}" font-size="14">Центр размерной дуги расположен в вершине измеряемого угла</text>`);
+
+if(x.id==="chamfer")return svgWrap(`
+<text x="25" y="28" fill="${ink}" font-size="18" font-weight="700">Фаска на наружной кромке</text>
+<path d="M135 90h390l70 70v85H135z" fill="url(#hatch)" stroke="${ink}" stroke-width="3"/>
+<line x1="595" y1="160" x2="690" y2="75" stroke="${blue}" stroke-width="2" marker-start="url(#ab)"/>
+<text x="595" y="60" fill="${blue}" font-size="22">2×45°</text>
+<path d="M525 90h70v70" fill="none" stroke="${orange}" stroke-dasharray="5 4"/>
+<text x="220" y="290" fill="${muted}" font-size="14">2 мм — величина среза; 45° — угол фаски к основной поверхности</text>`);
+
+if(x.id==="roughness-ra"||x.id==="machining")return svgWrap(`
+<text x="25" y="28" fill="${ink}" font-size="18" font-weight="700">${x.id==="roughness-ra"?"Шероховатость выбранной поверхности":"Обязательная механическая обработка"}</text>
+<path d="M105 220h590" stroke="${ink}" stroke-width="5"/>
+<path d="M160 220l25-52 30 78 28-70 28 68 28-65 30 66 30-70 35 70" fill="none" stroke="${orange}" stroke-width="3"/>
+<path d="M430 80l25 55 40-85" fill="none" stroke="${blue}" stroke-width="5"/>
+${x.id==="machining"?`<line x1="442" y1="76" x2="502" y2="76" stroke="${blue}" stroke-width="5"/>`:""}
+<line x1="455" y1="135" x2="455" y2="210" stroke="${blue}" stroke-width="2" marker-end="url(#ab)"/>
+<text x="510" y="83" fill="${blue}" font-size="22">${x.id==="roughness-ra"?"Ra 1,6":"Ra 3,2"}</text>
+<text x="120" y="285" fill="${muted}" font-size="14">${x.id==="roughness-ra"?"Неровности профиля показаны увеличенно":"Горизонтальная черта означает обязательное удаление материала"}</text>`);
+
+if(x.id==="thread")return svgWrap(`
+<text x="25" y="28" fill="${ink}" font-size="18" font-weight="700">Резьбовое отверстие в продольном разрезе</text>
+<path d="M115 80h540v180H115z" fill="url(#hatch)" stroke="${ink}" stroke-width="3"/>
+<path d="M115 130h390l45 35-45 35H115" fill="white" stroke="${ink}" stroke-width="3"/>
+<line x1="115" y1="140" x2="505" y2="140" stroke="${blue}" stroke-width="2"/><line x1="115" y1="190" x2="505" y2="190" stroke="${blue}" stroke-width="2"/>
+<path d="M130 130l15 10-15 10 15 10-15 10 15 10-15 10" fill="none" stroke="${orange}" stroke-width="2"/>
+<line x1="455" y1="108" x2="580" y2="50" stroke="${blue}" marker-end="url(#ab)"/>
+<text x="405" y="42" fill="${blue}" font-size="21">M12×1,5–6H</text>
+<text x="145" y="295" fill="${muted}" font-size="14">Толстая линия — номинальный диаметр; тонкая — внутренний диаметр</text>`);
+
+if(x.id==="fit")return svgWrap(`
+<text x="25" y="28" fill="${ink}" font-size="18" font-weight="700">Сопряжение отверстия и вала</text>
+<circle cx="270" cy="165" r="105" fill="url(#hatch)" stroke="${ink}" stroke-width="3"/><circle cx="270" cy="165" r="62" fill="white" stroke="${ink}" stroke-width="3"/>
+<circle cx="270" cy="165" r="57" fill="#dfe7ff" stroke="${blue}" stroke-width="3"/>
+<line x1="210" y1="165" x2="330" y2="165" stroke="${blue}" marker-start="url(#ab)" marker-end="url(#ab)"/>
+<text x="405" y="122" fill="${ink}" font-size="17">Отверстие: <tspan fill="${blue}" font-weight="700">H7</tspan></text>
+<text x="405" y="160" fill="${ink}" font-size="17">Вал: <tspan fill="${blue}" font-weight="700">h6</tspan></text>
+<text x="405" y="208" fill="${blue}" font-size="23">⌀40 H7/h6</text>
+<path d="M328 135h18v60h-18" fill="#fff1df" stroke="${orange}"/><text x="365" y="170" fill="${orange}" font-size="15">зазор</text>
+<text x="150" y="295" fill="${muted}" font-size="14">Вал показан синим; посадка H7/h6 относится к посадкам с зазором</text>`);
+
+if(x.id==="spline")return svgWrap(`
+<text x="25" y="28" fill="${ink}" font-size="18" font-weight="700">Поперечный разрез прямобочного шлицевого соединения</text>
+<g transform="translate(270 165)">
+<circle r="110" fill="url(#hatch)" stroke="${ink}" stroke-width="3"/><circle r="82" fill="white" stroke="${ink}" stroke-width="3"/>
+<g fill="#dfe7ff" stroke="${blue}" stroke-width="2">
+<rect x="-15" y="-92" width="30" height="47"/><rect x="-15" y="45" width="30" height="47"/>
+<rect x="-92" y="-15" width="47" height="30"/><rect x="45" y="-15" width="47" height="30"/>
+<rect x="-15" y="-92" width="30" height="47" transform="rotate(45)"/><rect x="-15" y="-92" width="30" height="47" transform="rotate(90)"/>
+<rect x="-15" y="-92" width="30" height="47" transform="rotate(135)"/><rect x="-15" y="-92" width="30" height="47" transform="rotate(225)"/>
+</g><circle r="45" fill="white" stroke="${ink}" stroke-width="3"/></g>
+<line x1="270" y1="55" x2="270" y2="275" stroke="${green}" stroke-dasharray="6 5"/><line x1="160" y1="165" x2="380" y2="165" stroke="${green}" stroke-dasharray="6 5"/>
+<line x1="430" y1="55" x2="430" y2="275" stroke="${blue}" marker-start="url(#ab)" marker-end="url(#ab)"/><text x="445" y="170" fill="${blue}" font-size="17">D = 40</text>
+<line x1="485" y1="83" x2="485" y2="247" stroke="${orange}" marker-start="url(#ab)" marker-end="url(#ab)"/><text x="500" y="170" fill="${orange}" font-size="17">d = 36</text>
+<text x="555" y="92" fill="${ink}" font-size="16">z = 8 зубьев</text><text x="555" y="128" fill="${ink}" font-size="16">b = 7 мм</text>
+<text x="480" y="230" fill="${blue}" font-size="17">d–8×36×40 H7/f7×7</text>
+<text x="110" y="310" fill="${muted}" font-size="14">Синие зубья вала входят во внутренние впадины ступицы</text>`);
+
+if(x.id==="bolt")return svgWrap(`
+<text x="25" y="28" fill="${ink}" font-size="18" font-weight="700">Болтовое соединение двух деталей</text>
+<rect x="170" y="100" width="390" height="62" fill="url(#hatch)" stroke="${ink}" stroke-width="3"/><rect x="170" y="162" width="390" height="62" fill="url(#hatch)" stroke="${ink}" stroke-width="3"/>
+<rect x="270" y="55" width="95" height="42" fill="#dfe7ff" stroke="${ink}" stroke-width="3"/><rect x="305" y="97" width="25" height="165" fill="#dfe7ff" stroke="${ink}" stroke-width="3"/>
+<rect x="282" y="225" width="70" height="20" fill="white" stroke="${ink}" stroke-width="3"/><path d="M278 245h78l-10 42h-58z" fill="#dfe7ff" stroke="${ink}" stroke-width="3"/>
+<path d="M306 235l24 24m-24-9l24 24m-20-39l20 20" stroke="${orange}" stroke-width="2"/>
+<line x1="365" y1="76" x2="520" y2="55" stroke="${blue}" marker-end="url(#ab)"/><text x="530" y="60" fill="${blue}" font-size="20">M12×50–8.8</text>
+<text x="390" y="125" fill="${muted}">деталь 1</text><text x="390" y="195" fill="${muted}">деталь 2</text>
+<text x="400" y="278" fill="${orange}">гайка и шайба</text>`);
+
+return svgWrap(frame(x.symbol,300,120,220));
+}
+
+function render(){
+const q=$("#search").value.trim().toLowerCase(),filter=$("#filter").value;
+let html="";
+Object.entries(GROUPS).forEach(([key,meta])=>{
+const list=ITEMS.filter(x=>x.group===key&&(filter==="all"||filter===key)&&(`${x.title} ${x.symbol} ${x.description}`).toLowerCase().includes(q));
+if(!list.length)return;
+html+=`<section class="section" id="${key}"><div class="section-head"><div><h2>${meta.name}</h2><p>${meta.about}</p></div><span class="count">${list.length} прим.</span></div><div class="grid">`;
+list.forEach(x=>html+=`<article class="card" tabindex="0" data-id="${x.id}">
+<div class="card-top"><div class="card-icon">${x.icon}</div><span class="category-dot">${meta.name}</span></div>
+<h3>${x.title}</h3><p>${x.description}</p>
+<div class="card-footer"><span class="card-code">${esc(x.symbol)}</span><button class="open-btn">Открыть →</button></div></article>`);
+html+="</div></section>";
+});
+catalog.innerHTML=html||`<div class="empty">🔎 По вашему запросу ничего не найдено.</div>`;
+catalog.querySelectorAll(".card").forEach(card=>{
+card.addEventListener("click",()=>openItem(card.dataset.id));
+card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openItem(card.dataset.id)}});
+});
+}
+
+function openItem(id){
+const x=ITEMS.find(i=>i.id===id);if(!x)return;
+$("#modalTitle").textContent=x.title;
+$("#modalTag").textContent=GROUPS[x.group].name;
+$("#drawing").innerHTML=drawing(x);
+$("#description").textContent=x.description;
+$("#usage").textContent=x.usage;
+$("#symbol").textContent=x.symbol;
+$("#reading").textContent=x.reading;
+$("#steps").innerHTML=x.steps.map((s,i)=>`<li><b>${i+1}</b>${esc(s)}</li>`).join("");
+$("#rule").textContent=x.rule;
+$("#legend").innerHTML=x.legend.map(s=>{const p=s.split(" — ");return `<span><b>${esc(p[0])}</b>${p[1]?" — "+esc(p.slice(1).join(" — ")):""}</span>`}).join("");
+overlay.classList.add("open");document.body.classList.add("no-scroll");
+}
+
+function closeModal(){overlay.classList.remove("open");document.body.classList.remove("no-scroll")}
+$("#closeModal").addEventListener("click",closeModal);
+overlay.addEventListener("click",e=>{if(e.target===overlay)closeModal()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+$("#search").addEventListener("input",render);
+$("#filter").addEventListener("change",render);
+
+document.querySelectorAll("#sideNav [data-filter]").forEach(btn=>btn.addEventListener("click",()=>{
+document.querySelectorAll("#sideNav button").forEach(b=>b.classList.remove("active"));
+btn.classList.add("active");$("#filter").value=btn.dataset.filter;render();
+if(btn.dataset.filter!=="all")setTimeout(()=>document.getElementById(btn.dataset.filter)?.scrollIntoView(),0);
+}));
+
+$("#standardsBtn").addEventListener("click",()=>{
+$("#modalTitle").textContent="Основные стандарты";
+$("#modalTag").textContent="Справочная информация";
+$("#drawing").innerHTML=`<div style="padding:28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px">
+${[
+["ГОСТ 2.307","Нанесение размеров и предельных отклонений"],
+["ГОСТ 2.308","Допуски формы и расположения поверхностей"],
+["ГОСТ 2.309","Обозначения шероховатости поверхностей"],
+["ГОСТ 2.311","Изображение резьбы на чертежах"],
+["ГОСТ 2.315","Упрощённые изображения крепёжных деталей"],
+["ГОСТ 2.409","Условные изображения зубчатых колёс и шлицев"]
+].map(x=>`<div style="padding:16px;border:1px solid #e3e8f2;border-radius:12px;background:#fff"><b style="color:#4169e1">${x[0]}</b><br><span style="color:#66728a">${x[1]}</span></div>`).join("")}</div>`;
+$("#description").textContent="Стандарты ЕСКД устанавливают единые правила выполнения и чтения конструкторской документации.";
+$("#usage").textContent="Перед выпуском рабочего чертежа проверяйте актуальность стандарта, изменения к нему и требования предприятия.";
+$("#symbol").textContent="ЕСКД";
+$("#reading").textContent="Номер стандарта указывает группу правил, по которым оформляется конкретный элемент документации.";
+$("#steps").innerHTML="<li><b>1</b>Определите тип обозначения.</li><li><b>2</b>Найдите применимый стандарт.</li><li><b>3</b>Проверьте актуальную редакцию.</li>";
+$("#rule").textContent="Примеры на сайте являются учебными. Для производства и контроля используйте официальные тексты действующих стандартов.";
+$("#legend").innerHTML="";
+overlay.classList.add("open");document.body.classList.add("no-scroll");
+});
+render();
+</script>
+</body>
+</html>
